@@ -187,9 +187,19 @@
   // marcas por separado de cualquier otro embed que use un ?tema= distinto
   // (o sin parámetro), aunque estén alojados en el mismo archivo/link.
   function storageKey() {
-    const params = new URLSearchParams(window.location.search);
-    const tema = params.get('tema') || 'default';
-    return 'marked-days-' + tema;
+    // Soporta #tema=x (recomendado, funciona incluso con htmlpreview.github.io que
+    // anida una URL completa y rompe el parseo normal de ?parametros) y también
+    // ?tema=x como respaldo para cuando el archivo está alojado directamente
+    // (ej. GitHub Pages), sin URLs anidadas.
+    let tema = null;
+    const hash = window.location.hash.replace(/^#/, '');
+    if (hash) {
+      try { tema = new URLSearchParams(hash).get('tema'); } catch (e) {}
+    }
+    if (!tema) {
+      try { tema = new URLSearchParams(window.location.search).get('tema'); } catch (e) {}
+    }
+    return 'marked-days-' + (tema || 'default');
   }
 
   // Usa localStorage del navegador: funciona cuando este archivo está alojado
